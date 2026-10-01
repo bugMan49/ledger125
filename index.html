@@ -423,7 +423,13 @@
         </div>
         <div class="field">
           <label for="cToken">访问令牌（fine-grained token）</label>
-          <input type="password" id="cToken" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div style="display:flex;gap:8px">
+            <input type="password" id="cToken" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:0">
+            <button class="btn" type="button" id="btnShowToken" style="flex:0 0 auto;padding:12px 14px">显示</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.6">
+            应以 <b>github_pat_</b> 开头（classic 令牌以 <b>ghp_</b> 开头，同样可用）。粘贴后系统会自动去掉空格、换行等多余字符。
+          </div>
         </div>
         <div class="field">
           <label for="cPath">数据文件路径</label>
@@ -462,6 +468,7 @@
       <div class="kv"><span class="k">写入方式</span><span class="v" id="stPoll">—</span></div>
       <div class="kv"><span class="k">待上传改动</span><span class="v" id="stPending">—</span></div>
       <div class="kv"><span class="k">令牌权限</span><span class="v" id="stPerm">—</span></div>
+      <div class="kv" id="rowLastError" style="display:none"><span class="k">最近错误</span><span class="v" id="stLastError">—</span></div>
       <div class="kv"><span class="k">文件版本 (sha)</span><span class="v mono" id="stSha">—</span></div>
     </div>
 
@@ -954,12 +961,31 @@
   GhError.prototype = Object.create(Error.prototype);
 
   function friendlyError(status, msg){
-    if (status === 401) return "令牌无效或已过期，请重新生成并填入";
-    if (status === 403) return "权限不足或触发限流：请确认令牌对该仓库有 Contents 读写权限（403 也可能是请求过于频繁，稍等再试）";
+    if (status === 401) return tokenDiagnosis();
+    if (status === 403) return "权限不足或触发限流：请确认令牌对该仓库的 Contents 权限是 Read and write（403 也可能是请求过于频繁，稍等再试）";
     if (status === 404) return "找不到仓库或文件：请检查仓库名是否为「用户名/仓库名」，以及令牌是否授权了该仓库";
     if (status === 409 || status === 422) return "云端文件已被其他设备修改，正在自动重试合并";
     if (status >= 500) return "GitHub 服务暂时不可用，稍后再试";
     return msg || ("请求失败（HTTP " + status + "）");
+  }
+
+  // 401 时给出可执行的诊断，而不是泛泛一句"令牌无效"
+  function tokenDiagnosis(){
+    var t = cloud.token || "";
+    var bits = [];
+    if (!t) return "没有读到令牌，请重新粘贴后点「连接并同步」";
+    var prefix = t.slice(0, Math.min(11, t.length));
+    var looksFine = /^github_pat_/.test(t) || /^ghp_/.test(t);
+    bits.push("当前令牌：共 " + t.length + " 个字符，开头为「" + prefix + "…」");
+    if (!looksFine){
+      bits.push("这个开头不像 GitHub 令牌：细粒度令牌应以 github_pat_ 开头，经典令牌以 ghp_ 开头。请确认复制的是「令牌」而不是密码、仓库地址或其他内容");
+    } else if (t.length < 40){
+      bits.push("长度偏短，可能是复制时漏掉了尾部字符，请重新完整复制");
+    } else {
+      bits.push("格式看起来正常，那么更可能是：令牌已过期、已被删除，或生成时没有勾选这个仓库");
+    }
+    bits.push("建议：到 github.com/settings/tokens 重新生成一个，生成后立即完整复制，再回到这里粘贴");
+    return bits.join("；");
   }
 
   /* ============================================================
@@ -1001,6 +1027,10 @@
     if ($("stPending")) $("stPending").textContent = cloud.pending ? "有（记账后自动上传）" : "无";
     if ($("stPoll")) $("stPoll").textContent = cloud.safeMode ? "关闭时先合并再写（安全）" : "关闭时直接覆写云端";
     if ($("stPerm")) $("stPerm").textContent = cloud.perm || "—";
+    if ($("stLastError")){
+      $("stLastError").textContent = cloud.lastError || "—";
+      $("rowLastError").style.display = cloud.lastError ? "flex" : "none";
+    }
     if ($("stSha")) $("stSha").textContent = cloud.sha ? cloud.sha.slice(0, 10) + "…" : "—";
   }
 
@@ -1156,12 +1186,24 @@
     return pull(false);
   }
 
+  // 令牌清洗：去掉所有空白、换行与不可见字符。
+  // 手机上复制令牌常常会带上换行或零宽字符，直接发送会被 GitHub 判为无效。
+  function cleanToken(raw){
+    return String(raw == null ? "" : raw)
+      .replace(/[\s\u00a0\u200b-\u200d\u2060\ufeff]/g, "")   // 空白 / 不换行空格 / 零宽字符 / BOM
+      .replace(/^["'`]|["'`]$/g, "");                        // 误带上的引号
+  }
+
   function connectCloud(){
     var repoRaw = $("cRepo").value.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\/+$/, "");
-    var token = $("cToken").value.trim();
+    var token = cleanToken($("cToken").value);
     var path = $("cPath").value.trim().replace(/^\/+/, "") || DEFAULT_PATH;
     if (!/^[\w.\-]+\/[\w.\-]+$/.test(repoRaw)){ toast("仓库请填「用户名/仓库名」"); return; }
     if (!token){ toast("请填写访问令牌"); return; }
+    if (!/^(github_pat_|ghp_|gho_|ghu_|ghs_)/.test(token)){
+      // 不是常见的令牌前缀，仍然尝试，但先提醒用户核对
+      toast("令牌看起来不像 GitHub 令牌，请核对是否复制完整");
+    }
     var parts = repoRaw.split("/");
     cloud.owner = parts[0];
     cloud.repo = parts[1];
@@ -1170,6 +1212,7 @@
     cloud.auto = $("cAuto") ? $("cAuto").checked : true;
     cloud.sha = "";
     saveCloudConfig();
+    $("cToken").value = token;               // 回填清洗后的值，方便用户核对
     renderSyncUi();
     setSyncStatus("pulling");
     pull(false).then(function(ok){
@@ -1714,6 +1757,12 @@
     window.open("https://github.com/settings/personal-access-tokens/new", "_blank");
     toast("创建时：仅选这个仓库，权限勾 Contents 读写");
   });
+  $("btnShowToken").addEventListener("click", function(){
+    var inp = $("cToken"), btn = $("btnShowToken");
+    var show = inp.type === "password";
+    inp.type = show ? "text" : "password";
+    btn.textContent = show ? "隐藏" : "显示";
+  });
 
   // ===== 同步时机：打开时拉取，关闭时上传 =====
   // 关闭时用 keepalive 请求 + pagehide/visibilitychange 双保险，
@@ -1804,13 +1853,13 @@
     addRecord: addRecord, removeRecord: removeRecord, clearAll: clearAll,
     switchType: switchType, switchTab: switchTab, renderAll: renderAll,
     filtered: filtered, totals: totals, save: save,
-    normalize: normalize, parsePayload: parsePayload, mergePayload: mergePayload,
-    cloudPayload: cloudPayload, localPayload: localPayload, pruneTombstones: pruneTombstones,
+    normalize: normalize, parsePayload: parsePayload, mergePayload: mergePayload,    cloudPayload: cloudPayload, localPayload: localPayload, pruneTombstones: pruneTombstones,
     loadLocal: loadLocal, importText: importText, importPayload: importPayload,
     connectCloud: connectCloud, disconnectCloud: disconnectCloud,
     pull: pull, push: push, syncNow: syncNow, syncOnClose: syncOnClose, boot: boot,
     setSyncStatus: function(s){ setSyncStatus(s); }, syncLabel: SYNC_LABEL,
     syncStatus: function(){ return syncStatus; },
+    tokenDiagnosis: tokenDiagnosis, cleanToken: cleanToken, friendlyError: friendlyError,
     config: { KEY: KEY, CLOUD_KEY: CLOUD_KEY, DEFAULT_PATH: DEFAULT_PATH, API: API, TOMB_KEEP_DAYS: TOMB_KEEP_DAYS }
   };
   window.__ledger = EXPOSE;
