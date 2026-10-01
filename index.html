@@ -438,8 +438,13 @@
         <div id="cloudActions" style="display:none">
           <div class="setrow" style="border-radius:12px;border:1px solid var(--line);margin-bottom:10px;padding:12px 14px">
             <span class="si">🔁</span>
-            <span class="st"><b>自动同步</b><small>页面每 20 秒自动拉取云端：另一台设备改了，这里会自动出现；本机记账后也会自动上传</small></span>
+            <span class="st"><b>打开 / 关闭时自动同步</b><small>打开页面拉取云端最新数据，关闭或切到后台时上传本机改动。关掉后打开与关闭都不联网，只能手动点「立即同步」</small></span>
             <span class="switch"><input type="checkbox" id="cAuto" checked><span class="tk"></span></span>
+          </div>
+          <div class="setrow" style="border-radius:12px;border:1px solid var(--line);margin-bottom:10px;padding:12px 14px">
+            <span class="si">🛡️</span>
+            <span class="st"><b>安全模式</b><small>关闭时先把云端数据合并进来再写，避免覆盖另一台设备的记录；关掉则每次直接覆写</small></span>
+            <span class="switch"><input type="checkbox" id="cSafe" checked><span class="tk"></span></span>
           </div>
           <button class="btn primary full" id="btnSyncNow" style="margin-bottom:9px">立即同步</button>
           <button class="btn danger full" id="btnDisconnect">断开连接（保留本地数据）</button>
@@ -453,7 +458,8 @@
       <div class="kv"><span class="k">云端文件</span><span class="v mono" id="stRepo">—</span></div>
       <div class="kv"><span class="k">最后同步</span><span class="v" id="stSyncAt">—</span></div>
       <div class="kv"><span class="k">云端记录数</span><span class="v" id="stRemoteCount">—</span></div>
-      <div class="kv"><span class="k">自动拉取</span><span class="v" id="stPoll">—</span></div>
+      <div class="kv"><span class="k">同步时机</span><span class="v">打开时拉取 · 关闭时上传</span></div>
+      <div class="kv"><span class="k">写入方式</span><span class="v" id="stPoll">—</span></div>
       <div class="kv"><span class="k">待上传改动</span><span class="v" id="stPending">—</span></div>
       <div class="kv"><span class="k">令牌权限</span><span class="v" id="stPerm">—</span></div>
       <div class="kv"><span class="k">文件版本 (sha)</span><span class="v mono" id="stSha">—</span></div>
@@ -678,7 +684,10 @@
   var meta = { savedAt: 0 };
   var cloud = {
     owner: "", repo: "", path: DEFAULT_PATH, token: "",
-    auto: true, sha: "", lastSyncAt: "", remoteCount: 0, perm: "", pending: false
+    auto: true,                 // 关闭时是否同步（记账后也顺带上传）
+    safeMode: true,             // true=关闭时先合并再写；false=关闭时直接覆写
+    sha: "", lastSyncAt: "", remoteCount: 0, perm: "", pending: false,
+    lastError: "", unsavedWarning: false
   };
   var busy = false, pushTimer = null;
 
@@ -910,14 +919,15 @@
   }
 
   // 写入文件（乐观并发：带上已知 sha，冲突会返回 409）
-  function apiPutFile(cfg, text, sha, message){
+  // keepalive：关闭页面时发出的请求不会被浏览器中断
+  function apiPutFile(cfg, text, sha, message, keepalive){
     var body = {
       message: message || ("更新账本 " + new Date().toLocaleString("zh-CN")),
       content: b64encode(text)
     };
     if (sha) body.sha = sha;
     var url = API + "/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + cfg.path;
-    return fetch(url, {
+    var opts = {
       method: "PUT",
       headers: {
         "Authorization": "Bearer " + cfg.token,
@@ -925,7 +935,9 @@
         "Content-Type": "application/json"
       },
       body: JSON.stringify(body)
-    }).then(function(res){
+    };
+    if (keepalive) opts.keepalive = true;
+    return fetch(url, opts).then(function(res){
       return res.json().catch(function(){ return {}; }).then(function(j){
         if (res.ok && j.content) return { sha: j.content.sha };
         throw new GhError(res.status, (j && j.message) || ("HTTP " + res.status));
@@ -986,18 +998,15 @@
     if ($("stRepo")) $("stRepo").textContent = cloud.owner + "/" + cloud.repo + " · " + cloud.path;
     if ($("stSyncAt")) $("stSyncAt").textContent = timeAgo(cloud.lastSyncAt);
     if ($("stRemoteCount")) $("stRemoteCount").textContent = cloud.remoteCount + " 条";
-    if ($("stPending")) $("stPending").textContent = cloud.pending ? "有（将自动上传）" : "无";
-    if ($("stPoll")) $("stPoll").textContent = (cloud.repo && cloud.token && cloud.auto)
-      ? ("每 " + Math.round(POLL_MS / 1000) + " 秒自动拉取" + (autoTimer ? "" : "（已暂停）"))
-      : "已关闭";
+    if ($("stPending")) $("stPending").textContent = cloud.pending ? "有（记账后自动上传）" : "无";
+    if ($("stPoll")) $("stPoll").textContent = cloud.safeMode ? "关闭时先合并再写（安全）" : "关闭时直接覆写云端";
     if ($("stPerm")) $("stPerm").textContent = cloud.perm || "—";
     if ($("stSha")) $("stSha").textContent = cloud.sha ? cloud.sha.slice(0, 10) + "…" : "—";
   }
 
   var syncStatus = "off";
   var syncGen = 0;          // 代次：任何一次结束都能释放锁，避免异常路径把锁卡死
-  var autoTimer = null;     // 定时轮询：页面开着也能看到别的设备的改动
-  var POLL_MS = 20000;      // 拉取间隔
+  var closing = false;      // 正在关闭页面：此时写入云端
 
   function beginSync(){
     syncGen++;
@@ -1010,21 +1019,18 @@
 
   function setSyncStatus(s){ syncStatus = s; renderSyncUi(); }
 
+  // 记账后的自动上传（轻量、去抖）；关闭页面时另有关闭同步兜底
   function schedulePush(){
+    if (!cloud.auto) return;                 // 关闭自动同步后，只在打开/关闭时同步
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(function(){ push("auto"); }, 2500);
+    pushTimer = setTimeout(function(){
+      pushTimer = null;
+      push("auto");
+    }, 900);
   }
-
-  function startAutoSync(){
-    stopAutoSync();
-    if (!cloud.repo || !cloud.token || !cloud.auto) return;
-    autoTimer = setInterval(function(){
-      try { if (document.visibilityState === "hidden") return; } catch(e){}
-      if (!busy) pull(true);
-    }, POLL_MS);
-  }
-  function stopAutoSync(){
-    if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  // 关闭时取消尚未发出的记账推送，让"关闭同步"成为唯一的最后一次写入
+  function cancelPendingPush(){
+    if (pushTimer){ clearTimeout(pushTimer); pushTimer = null; }
   }
 
   function push(reason, retry){
@@ -1034,10 +1040,12 @@
     var cfg = { owner: cloud.owner, repo: cloud.repo, path: cloud.path, token: cloud.token, branch: "main" };
     var payload = cloudPayload();
     var text = JSON.stringify(payload, null, 2);
-    return apiPutFile(cfg, text, cloud.sha, "更新账本（" + state.records.length + " 条记录）")
+    var commitMsg = (closing ? "关闭时同步" : "更新账本") + "（" + state.records.length + " 条记录）";
+    return apiPutFile(cfg, text, cloud.sha, commitMsg, closing)
       .then(function(r){
         cloud.sha = r.sha;
         cloud.pending = false;
+        cloud.lastError = "";
         cloud.lastSyncAt = nowISO();
         cloud.remoteCount = state.records.length;
         endSync(gen);
@@ -1055,10 +1063,31 @@
           });
         }
         endSync(gen);
+        cloud.lastError = (err && (err.friendly || err.message)) || "同步失败";
+        // 关闭页面时的失败要记下来，下次打开时提醒，避免用户以为已保存
+        if (closing){
+          cloud.unsavedWarning = true;
+          cloud.pending = true;
+          saveCloudConfig();
+        }
         setSyncStatus("error");
-        showTip("syncTip", (err && (err.friendly || err.message)) || "同步失败", true);
+        showTip("syncTip", cloud.lastError, true);
         return false;
       });
+  }
+
+  // 关闭页面 / 切到后台时的同步：safeMode 先去云端合并，否则直接覆写
+  // 注意：cloud.auto 是"自动同步"总开关，关闭后打开与关闭页面都不会联网
+  function syncOnClose(){
+    if (!cloud.repo || !cloud.token || !cloud.auto) return Promise.resolve(false);
+    cancelPendingPush();                         // 关闭同步是最后一次写入，取消未发出的推送
+    closing = true;
+    var done = function(){
+      return push("close");
+    };
+    if (!cloud.safeMode) return done();          // 用户要求：直接覆写云端
+    if (busy) return done();                     // 已有同步在跑，直接接上
+    return pull(true).then(done).catch(done);
   }
 
   // 拉取云端 -> 与本地合并 -> 需要时回传
@@ -1095,7 +1124,7 @@
       cloud.lastSyncAt = nowISO();
       cloud.perm = "Contents 读写可用";
       var pulledNew = state.records.length - beforeCount;
-      // 后台轮询时发现另一台设备改了云端，给个轻提示
+      // 打开页面时若云端有别的设备的改动，给个提示
       if (quiet && (remoteChanged || pulledNew !== 0)){
         toast("已同步云端变化（当前 " + state.records.length + " 条）");
         vibrate(10);
@@ -1145,15 +1174,13 @@
     setSyncStatus("pulling");
     pull(false).then(function(ok){
       if (ok !== false){
-        toast("已连接：" + cloud.owner + "/" + cloud.repo);
-        startAutoSync();          // 连上后开始定时拉取，另一端改动随时可见
+        toast("已连接：" + cloud.owner + "/" + cloud.repo + "（打开 / 关闭时自动同步）");
       }
     });
   }
 
   function disconnectCloud(){
     if (!window.confirm("断开云同步？\n本机数据会保留，云端文件不会被删除。")) return;
-    stopAutoSync();
     cloud.owner = ""; cloud.repo = ""; cloud.token = ""; cloud.sha = "";
     cloud.lastSyncAt = ""; cloud.remoteCount = 0; cloud.pending = false;
     saveCloudConfig();
@@ -1165,7 +1192,9 @@
   function saveCloudConfig(){
     Store.set(CLOUD_KEY, JSON.stringify({
       owner: cloud.owner, repo: cloud.repo, path: cloud.path,
-      token: cloud.token, auto: cloud.auto, sha: cloud.sha, lastSyncAt: cloud.lastSyncAt
+      token: cloud.token, auto: cloud.auto, safeMode: cloud.safeMode,
+      sha: cloud.sha, lastSyncAt: cloud.lastSyncAt,
+      unsavedWarning: cloud.unsavedWarning
     }));
   }
   function loadCloudConfig(){
@@ -1179,8 +1208,10 @@
       cloud.path = c.path || DEFAULT_PATH;
       cloud.token = c.token || "";
       cloud.auto = c.auto !== false;
+      cloud.safeMode = c.safeMode !== false;      // 默认安全模式
       cloud.sha = c.sha || "";
       cloud.lastSyncAt = c.lastSyncAt || "";
+      cloud.unsavedWarning = !!c.unsavedWarning;
     } catch(e){}
   }
 
@@ -1665,37 +1696,37 @@
     saveCloudConfig();
     renderSyncUi();
     if (cloud.auto){
-      startAutoSync();
       if (cloud.repo && cloud.token) pull(true);   // 立刻拉一次
-      toast("已开启自动同步");
+      toast("已开启：打开 / 关闭时同步");
     } else {
-      stopAutoSync();
-      toast("已关闭自动同步");
+      toast("已关闭自动同步，仅手动同步");
     }
+  });
+  $("cSafe").addEventListener("change", function(){
+    cloud.safeMode = this.checked;
+    saveCloudConfig();
+    renderSyncUi();
+    toast(this.checked
+      ? "安全模式：关闭时先合并再写，不会覆盖别的设备"
+      : "已改为直接覆写：关闭时整份覆盖云端文件");
   });
   $("btnFillToken").addEventListener("click", function(){
     window.open("https://github.com/settings/personal-access-tokens/new", "_blank");
     toast("创建时：仅选这个仓库，权限勾 Contents 读写");
   });
 
-  document.addEventListener("visibilitychange", function(){
-    if (document.visibilityState === "hidden"){
-      if (state.records.length || state.tombstones.length) save({ silent: true });
-      stopAutoSync();                     // 后台不轮询，省电省流量
-      return;
-    }
-    // 回到前台：立刻合并云端，再恢复定时拉取
-    // 注意：只有用户开着自动同步时才这么做，否则会把用户关掉的开关偷偷打开
-    if (cloud.repo && cloud.token && cloud.auto){
-      startAutoSync();
-      pull(true);
-    }
-  });
-  window.addEventListener("focus", function(){
-    if (cloud.repo && cloud.token && cloud.auto && !busy) pull(true);
-  });
+  // ===== 同步时机：打开时拉取，关闭时上传 =====
+  // 关闭时用 keepalive 请求 + pagehide/visibilitychange 双保险，
+  // 因为手机浏览器常直接从后台杀掉页面，不一定触发 unload。
   window.addEventListener("pagehide", function(){
     if (state.records.length || state.tombstones.length) save({ silent: true });
+    if (cloud.repo && cloud.token && cloud.auto) syncOnClose();
+  });
+  document.addEventListener("visibilitychange", function(){
+    if (document.visibilityState !== "hidden") return;
+    if (state.records.length || state.tombstones.length) save({ silent: true });
+    // 切到后台等同于"离开页面"：上传一次（keepalive 保证能发出去）
+    if (cloud.repo && cloud.token && cloud.auto) syncOnClose();
   });
   window.addEventListener("storage", function(e){
     if (e.key === KEY && e.newValue){
@@ -1729,11 +1760,18 @@
 
     if (cloud.repo && cloud.token){
       $("cAuto").checked = cloud.auto;
+      $("cSafe").checked = cloud.safeMode;
       setSyncStatus("idle");
       renderSyncUi();
+      // 打开页面：拉取云端最新数据并与本机合并
       if (cloud.auto){
-        pull(true);
-        startAutoSync();
+        pull(true).then(function(){
+          // 上次关闭时没能上传成功，提醒用户，避免误以为已同步
+          if (cloud.unsavedWarning){
+            cloud.unsavedWarning = false;
+            showTip("syncTip", "上次关闭时未能同步成功" + (cloud.lastError ? "：" + cloud.lastError : "") + "，本次打开已重新合并。", true);
+          }
+        });
       }
     } else {
       syncStatus = "off";
@@ -1770,11 +1808,10 @@
     cloudPayload: cloudPayload, localPayload: localPayload, pruneTombstones: pruneTombstones,
     loadLocal: loadLocal, importText: importText, importPayload: importPayload,
     connectCloud: connectCloud, disconnectCloud: disconnectCloud,
-    pull: pull, push: push, syncNow: syncNow, boot: boot,
-    startAutoSync: startAutoSync, stopAutoSync: stopAutoSync,
+    pull: pull, push: push, syncNow: syncNow, syncOnClose: syncOnClose, boot: boot,
     setSyncStatus: function(s){ setSyncStatus(s); }, syncLabel: SYNC_LABEL,
     syncStatus: function(){ return syncStatus; },
-    config: { KEY: KEY, CLOUD_KEY: CLOUD_KEY, DEFAULT_PATH: DEFAULT_PATH, API: API, TOMB_KEEP_DAYS: TOMB_KEEP_DAYS, POLL_MS: POLL_MS }
+    config: { KEY: KEY, CLOUD_KEY: CLOUD_KEY, DEFAULT_PATH: DEFAULT_PATH, API: API, TOMB_KEEP_DAYS: TOMB_KEEP_DAYS }
   };
   window.__ledger = EXPOSE;
   try { globalThis.__ledger = EXPOSE; } catch(e){}
