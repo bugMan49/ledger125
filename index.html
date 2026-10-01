@@ -39,14 +39,14 @@
   input[type=number]{-moz-appearance:textfield}
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px}
 
   /* ================= 顶栏 ================= */
   .topbar{
     position:sticky;top:0;z-index:40;
     padding:calc(var(--safe-t) + 10px) 16px 12px;
     background:linear-gradient(160deg,#1e293b,#0f172a 70%);
-    color:#fff;
-    border-radius:0 0 22px 22px;
+    color:#fff;border-radius:0 0 22px 22px;
     box-shadow:0 6px 18px rgba(15,23,42,.18);
   }
   .topbar .row{display:flex;align-items:center;gap:10px}
@@ -63,8 +63,11 @@
     padding:5px 9px;border-radius:99px;color:#cbd5e1;white-space:nowrap;
   }
   .status-chip .dotlive{width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.2)}
+  .status-chip.sync .dotlive{background:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
+  .status-chip.busy .dotlive{background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.2);animation:pulse 1s infinite}
   .status-chip.warn{color:#fecaca;border-color:rgba(248,113,113,.4)}
-  .status-chip.warn .dotlive{background:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.2)}
+  .status-chip.warn .dotlive{background:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.2);animation:none}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
   .hero{margin-top:14px;display:flex;align-items:flex-end;gap:12px}
   .hero .bal{flex:1;min-width:0}
@@ -74,24 +77,17 @@
   .hero .io b{font-weight:600}
   .pos{color:#34d399} .neg{color:#fca5a5}
 
-  /* ================= 页面切换 ================= */
+  /* ================= 页面 ================= */
   .page{display:none;padding:14px 14px 6px}
   .page.on{display:block;animation:fade .22s ease}
   @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-  .card{
-    background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
-    padding:16px;margin-bottom:13px;
-  }
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-bottom:13px}
   .card h2{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:7px;margin-bottom:13px}
   .card h2 .right{margin-left:auto;font-size:11.5px;font-weight:400;color:var(--muted);text-align:right}
 
-  /* ================= 概览格 ================= */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
-  .mini{
-    background:#fff;border-radius:14px;padding:13px 14px;box-shadow:var(--shadow);
-    position:relative;overflow:hidden;
-  }
+  .mini{background:#fff;border-radius:14px;padding:13px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
   .mini::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3.5px;background:var(--muted)}
   .mini.income::after{background:var(--income)}
   .mini.need::after{background:var(--need)}
@@ -103,12 +99,8 @@
   .dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex:0 0 auto}
   .dot.g{background:var(--income)} .dot.r{background:var(--need)} .dot.o{background:var(--expense)} .dot.b{background:var(--brand)}
 
-  /* ================= 类型页签 ================= */
   .seg{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:13px;margin-bottom:14px}
-  .seg button{
-    flex:1;padding:11px 4px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--muted);
-    transition:.18s;
-  }
+  .seg button{flex:1;padding:11px 4px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--muted);transition:.18s}
   .seg button.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(15,23,42,.09)}
   .seg button.on[data-type="need"]{color:var(--need)}
   .seg button.on[data-type="expense"]{color:var(--expense)}
@@ -118,10 +110,7 @@
   .field > label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
   .amount-wrap{position:relative}
-  .amount-wrap .cur{
-    position:absolute;left:14px;top:50%;transform:translateY(-50%);
-    font-size:19px;color:var(--muted);font-weight:600;pointer-events:none;
-  }
+  .amount-wrap .cur{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:19px;color:var(--muted);font-weight:600;pointer-events:none}
   #fAmt{padding-left:36px;font-size:26px;font-weight:700;height:60px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
   #fAmt::placeholder{font-weight:600;color:#cbd5e1}
 
@@ -142,10 +131,17 @@
   .btn-save.want{background:linear-gradient(135deg,#f97316,#f59e0b);box-shadow:0 8px 20px rgba(249,115,22,.28)}
   .btn-save.income{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 20px rgba(16,185,129,.28)}
 
-  .notice{
-    display:flex;gap:7px;align-items:flex-start;font-size:11.5px;color:var(--muted);
-    line-height:1.6;margin-top:11px;background:var(--soft);padding:10px 12px;border-radius:11px;
+  .btn{
+    padding:12px 14px;border-radius:12px;font-size:14.5px;font-weight:600;
+    background:var(--soft);border:1px solid var(--line);color:#334155;
   }
+  .btn:active{transform:scale(.985)}
+  .btn.primary{background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(59,130,246,.25)}
+  .btn.danger{background:#fff5f5;color:#b91c1c;border-color:#fecaca}
+  .btn.full{width:100%}
+
+  .notice{display:flex;gap:7px;align-items:flex-start;font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:11px;background:var(--soft);padding:10px 12px;border-radius:11px}
+  .notice.warnbox{background:#fffbeb;border:1px solid #fde68a;color:#92400e;margin-top:0}
   .badge-need{
     display:inline-flex;align-items:center;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;
     padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;flex:0 0 auto;
@@ -166,20 +162,14 @@
   ul#list{list-style:none}
   ul#list li{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--line)}
   ul#list li:last-child{border-bottom:none}
-  .ico{
-    width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:0 0 auto;
-    background:var(--soft);
-  }
+  .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:0 0 auto;background:var(--soft)}
   .ico.income{background:#ecfdf5} .ico.expense{background:#fff7ed} .ico.need{background:#fef2f2}
   .mid{flex:1;min-width:0}
   .mid .t1{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:6px}
   .mid .t2{font-size:11.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .amt{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
   .amt.income{color:var(--income)} .amt.expense{color:var(--expense)} .amt.need{color:var(--need)}
-  .del{
-    width:34px;height:34px;flex:0 0 auto;border-radius:10px;color:#cbd5e1;font-size:19px;
-    display:grid;place-items:center;background:transparent;
-  }
+  .del{width:34px;height:34px;flex:0 0 auto;border-radius:10px;color:#cbd5e1;font-size:19px;display:grid;place-items:center;background:transparent}
   .del:active{background:#fee2e2;color:#ef4444}
 
   .empty{text-align:center;color:var(--muted);padding:36px 12px;font-size:13.5px;line-height:1.7}
@@ -206,10 +196,7 @@
 
   /* ================= 设置 ================= */
   .setlist{border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow);margin-bottom:13px}
-  .setrow{
-    display:flex;align-items:center;gap:12px;width:100%;padding:15px 16px;text-align:left;
-    border-bottom:1px solid var(--line);background:#fff;
-  }
+  .setrow{display:flex;align-items:center;gap:12px;width:100%;padding:15px 16px;text-align:left;border-bottom:1px solid var(--line);background:#fff}
   .setrow:last-child{border-bottom:none}
   .setrow .si{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;background:var(--soft);flex:0 0 auto}
   .setrow .st{flex:1;min-width:0}
@@ -224,11 +211,16 @@
   .kv .k{color:var(--muted);flex:0 0 auto}
   .kv .v{font-weight:600;text-align:right;word-break:break-all}
 
-  .tip{
-    font-size:11.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;
-    padding:11px 13px;border-radius:12px;line-height:1.65;margin:12px 14px 0;display:none;
-  }
+  .tip{font-size:11.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;padding:11px 13px;border-radius:12px;line-height:1.65;margin:12px 14px 0;display:none}
   .tip.on{display:block}
+  .tip.err{color:#991b1b;background:#fef2f2;border-color:#fecaca}
+
+  .switch{position:relative;width:48px;height:28px;flex:0 0 auto}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;z-index:2}
+  .switch .tk{position:absolute;inset:0;background:#cbd5e1;border-radius:99px;transition:.2s}
+  .switch .tk::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked + .tk{background:var(--income)}
+  .switch input:checked + .tk::after{transform:translateX(20px)}
 
   /* ================= 底部导航 ================= */
   .nav{
@@ -245,7 +237,6 @@
   }
   .nav button .ni{font-size:20px;line-height:1}
   .nav button.on{color:var(--brand)}
-  .nav button.on .ni{transform:translateY(-1px)}
   .nav .badge{
     position:absolute;top:2px;left:50%;margin-left:6px;
     background:var(--brand);color:#fff;font-size:9.5px;font-weight:700;
@@ -261,23 +252,16 @@
   }
   .toast.show{opacity:1;transform:translate(-50%,0)}
 
-  /* ================= 大屏 ================= */
   @media (min-width:700px){
     body{padding-bottom:40px}
     .wrap{max-width:760px;margin:0 auto}
-    .nav{
-      position:sticky;bottom:14px;margin:0 auto 14px;max-width:420px;
-      border-radius:18px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.12);
-      padding:6px 8px;
-    }
+    .nav{position:sticky;bottom:14px;margin:0 auto 14px;max-width:420px;border-radius:18px;border:1px solid var(--line);box-shadow:0 10px 30px rgba(15,23,42,.12);padding:6px 8px}
     .toast{bottom:110px}
     .page{padding:18px 18px 6px}
     .tip{margin:12px 18px 0}
     .grid2{grid-template-columns:repeat(4,1fr)}
   }
-  @media (min-width:1000px){
-    .wrap{max-width:900px}
-  }
+  @media (min-width:1000px){ .wrap{max-width:900px} }
 </style>
 </head>
 <body>
@@ -293,7 +277,7 @@
         <div class="sub" id="todayLabel">—</div>
       </div>
       <div class="spacer"></div>
-      <div class="status-chip" id="saveChip"><span class="dotlive"></span><span id="saveChipText">已保存</span></div>
+      <button class="status-chip" id="syncChip" title="点击立即同步"><span class="dotlive"></span><span id="syncChipText">本地</span></button>
     </div>
     <div class="hero">
       <div class="bal">
@@ -308,8 +292,9 @@
   </header>
 
   <div class="tip" id="storeTip"></div>
+  <div class="tip" id="syncTip"></div>
 
-  <!-- ================= 页面 1：记账 ================= -->
+  <!-- ================= 记账 ================= -->
   <section class="page on" id="page-add">
     <div class="grid2">
       <div class="mini income">
@@ -335,7 +320,7 @@
     </div>
 
     <div class="card">
-      <h2>✍️ 记一笔 <span class="right">数据实时保存</span></h2>
+      <h2>✍️ 记一笔 <span class="right" id="saveHint">数据实时保存</span></h2>
 
       <div class="seg" id="seg">
         <button data-type="need" class="on">🔴 必要支出</button>
@@ -378,7 +363,7 @@
     </div>
   </section>
 
-  <!-- ================= 页面 2：明细 ================= -->
+  <!-- ================= 明细 ================= -->
   <section class="page" id="page-list">
     <div class="fbar" id="fbar">
       <button data-filter="all" class="on">全部</button>
@@ -397,10 +382,10 @@
     </div>
   </section>
 
-  <!-- ================= 页面 3：统计 ================= -->
+  <!-- ================= 统计 ================= -->
   <section class="page" id="page-stat">
     <div class="card">
-      <h2>📅 近 6 个月趋势 <span class="right" id="trendScope">收入 / 必要 / 可选</span></h2>
+      <h2>📅 近 6 个月趋势 <span class="right">收入 / 必要 / 可选</span></h2>
       <div class="trend" id="trend"></div>
       <div class="legend">
         <span><i class="dot r"></i>必要支出</span>
@@ -418,26 +403,82 @@
     </div>
   </section>
 
-  <!-- ================= 页面 4：设置 / 数据 ================= -->
+  <!-- ================= 设置 ================= -->
   <section class="page" id="page-set">
+
+    <!-- 云同步 -->
     <div class="card">
-      <h2>💾 数据存储状态</h2>
+      <h2>☁️ 云同步（GitHub 仓库）
+        <span class="right" id="cloudState">未启用</span>
+      </h2>
+
+      <div class="notice warnbox" id="cloudIntro">
+        <span>把所有设备的数据汇总到你自己 GitHub 仓库里的一个 JSON 文件，实现多端同步与云端备份。需要你创建一个「细粒度令牌」并填在下面，令牌只保存在本机浏览器里。<b>若仓库是公开的，别人拿到仓库地址就能看到这个账本文件</b>，介意的话请建私有仓库（数据同步不受影响）。</span>
+      </div>
+
+      <div id="cloudForm">
+        <div class="field">
+          <label for="cRepo">仓库（用户名/仓库名）</label>
+          <input type="text" id="cRepo" class="mono" placeholder="例如 zhangsan/ledger" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="cToken">访问令牌（fine-grained token）</label>
+          <input type="password" id="cToken" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="cPath">数据文件路径</label>
+          <input type="text" id="cPath" class="mono" placeholder="data/ledger.json" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+
+        <div class="row2" style="margin-bottom:12px">
+          <button class="btn primary" id="btnConnect">连接并同步</button>
+          <button class="btn" id="btnFillToken">怎么获取令牌？</button>
+        </div>
+
+        <div id="cloudActions" style="display:none">
+          <div class="setrow" style="border-radius:12px;border:1px solid var(--line);margin-bottom:10px;padding:12px 14px">
+            <span class="si">🔁</span>
+            <span class="st"><b>自动同步</b><small>页面每 20 秒自动拉取云端：另一台设备改了，这里会自动出现；本机记账后也会自动上传</small></span>
+            <span class="switch"><input type="checkbox" id="cAuto" checked><span class="tk"></span></span>
+          </div>
+          <button class="btn primary full" id="btnSyncNow" style="margin-bottom:9px">立即同步</button>
+          <button class="btn danger full" id="btnDisconnect">断开连接（保留本地数据）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 同步状态 -->
+    <div class="card" id="cloudStatusCard" style="display:none">
+      <h2>📡 同步状态</h2>
+      <div class="kv"><span class="k">云端文件</span><span class="v mono" id="stRepo">—</span></div>
+      <div class="kv"><span class="k">最后同步</span><span class="v" id="stSyncAt">—</span></div>
+      <div class="kv"><span class="k">云端记录数</span><span class="v" id="stRemoteCount">—</span></div>
+      <div class="kv"><span class="k">自动拉取</span><span class="v" id="stPoll">—</span></div>
+      <div class="kv"><span class="k">待上传改动</span><span class="v" id="stPending">—</span></div>
+      <div class="kv"><span class="k">令牌权限</span><span class="v" id="stPerm">—</span></div>
+      <div class="kv"><span class="k">文件版本 (sha)</span><span class="v mono" id="stSha">—</span></div>
+    </div>
+
+    <!-- 本地存储 -->
+    <div class="card">
+      <h2>💾 本地存储状态</h2>
       <div class="kv"><span class="k">存储方式</span><span class="v" id="stMode">—</span></div>
-      <div class="kv"><span class="k">记录条数</span><span class="v" id="stCount">0 条</span></div>
+      <div class="kv"><span class="k">本机记录数</span><span class="v" id="stCount">0 条</span></div>
       <div class="kv"><span class="k">上次保存</span><span class="v" id="stSaved">—</span></div>
       <div class="kv"><span class="k">数据大小</span><span class="v" id="stSize">—</span></div>
       <div class="kv"><span class="k">记录日期范围</span><span class="v" id="stRange">—</span></div>
     </div>
 
+    <!-- 导入导出 -->
     <div class="setlist">
       <button class="setrow" id="btnBackup">
         <span class="si">📤</span>
-        <span class="st"><b>导出备份文件</b><small>下载 .json，换手机 / 换浏览器后原样恢复</small></span>
+        <span class="st"><b>导出备份文件</b><small>下载 .json，手动备份或换设备恢复</small></span>
         <span class="arrow">›</span>
       </button>
       <button class="setrow" id="btnImport">
         <span class="si">📥</span>
-        <span class="st"><b>从备份恢复</b><small>选择之前导出的 .json 文件导入（自动去重）</small></span>
+        <span class="st"><b>从备份恢复</b><small>选择 .json 文件导入（按记录去重合并）</small></span>
         <span class="arrow">›</span>
       </button>
       <button class="setrow" id="btnCsv">
@@ -452,7 +493,7 @@
       </button>
       <button class="setrow danger" id="btnClear">
         <span class="si">🗑️</span>
-        <span class="st"><b>清空全部记录</b><small>不可撤销，建议先导出备份</small></span>
+        <span class="st"><b>清空全部记录</b><small>不可撤销；若已连云端，会同步清空云端</small></span>
         <span class="arrow">›</span>
       </button>
     </div>
@@ -460,8 +501,8 @@
     <div class="card">
       <h2>💡 使用提示</h2>
       <div class="notice" style="margin-top:0">
-        数据保存在本机浏览器里，关掉页面或重启手机后再打开会自动加载历史记录。
-        清理浏览器数据、无痕模式下数据会被清除，重要数据建议定期「导出备份文件」。
+        数据先存在本机浏览器（离线也能记账），开启云同步后会自动汇总到你 GitHub 仓库的 JSON 文件里。
+        清理浏览器数据会清掉本地缓存，但云端文件仍在，重连后即可恢复。
         手机上可用浏览器菜单「添加到主屏幕」，像 App 一样打开。
       </div>
     </div>
@@ -469,7 +510,6 @@
 
 </div>
 
-<!-- ================= 底部导航 ================= -->
 <nav class="nav" id="nav">
   <button data-page="add" class="on"><span class="ni">✏️</span>记账</button>
   <button data-page="list"><span class="ni">📋</span>明细</button>
@@ -508,9 +548,14 @@
     expense:'<span class="badge-need" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa">可选支出</span><span>可以压缩或延后的消费：娱乐、旅游、购物。管住这类开销最容易攒下钱。</span>',
     income:'<span class="badge-need" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0">收入</span><span>所有进账：工资、奖金、兼职、投资收益等。</span>'
   };
-  var KEY = "dsh-ledger-v2";        // 主存储键
-  var OLD_KEY = "dsh-ledger-v1";    // 上一版本的键，自动迁移
-  var META_KEY = "dsh-ledger-meta";
+
+  var KEY = "dsh-ledger-v3";          // 本地数据（记录 + 墓碑）
+  var LEGACY_KEYS = ["dsh-ledger-v2", "dsh-ledger-v1"];
+  var META_KEY = "dsh-ledger-meta";   // 保存时间
+  var CLOUD_KEY = "dsh-ledger-cloud"; // 云同步配置（含令牌，仅存本机）
+  var TOMB_KEEP_DAYS = 180;           // 删除标记保留时长
+  var API = "https://api.github.com";
+  var DEFAULT_PATH = "data/ledger.json";
 
   /* ============================================================
      小工具
@@ -522,6 +567,7 @@
     var d = new Date();
     return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
   }
+  function nowISO(){ return new Date().toISOString(); }
   function money(n, noDecimals){
     var v = Number(n) || 0;
     return "¥" + v.toLocaleString("zh-CN", {
@@ -541,7 +587,8 @@
   }
   function timeAgo(ts){
     if (!ts) return "—";
-    var s = Math.floor((Date.now() - ts) / 1000);
+    var s = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (!isFinite(s)) return "—";
     if (s < 10) return "刚刚";
     if (s < 60) return s + " 秒前";
     if (s < 3600) return Math.floor(s / 60) + " 分钟前";
@@ -550,8 +597,16 @@
     return (d.getMonth()+1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
   function monthLabel(key){
-    var p = key.split("-");
+    var p = String(key).split("-");
     return p[0] + " 年 " + Number(p[1]) + " 月";
+  }
+  function ms(v){
+    if (typeof v === "number" && isFinite(v)) return v;
+    if (typeof v === "string"){
+      var t = new Date(v).getTime();
+      if (isFinite(t)) return t;
+    }
+    return 0;
   }
   var toastTimer = null;
   function toast(msg){
@@ -559,23 +614,19 @@
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2400);
   }
-  function vibrate(ms){
-    try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e){}
+  function vibrate(n){
+    try { if (navigator.vibrate) navigator.vibrate(n); } catch(e){}
   }
 
   /* ============================================================
-     存储层：localStorage 优先，失败自动降级 sessionStorage / 内存
+     本地存储层：localStorage -> sessionStorage -> 内存
      ============================================================ */
   var Store = (function(){
     function ready(s){
-      try {
-        var probe = "__dsh_probe__";
-        s.setItem(probe, "1");
-        s.removeItem(probe);
-        return true;
-      } catch(e){ return false; }
+      try { s.setItem("__dsh_probe__", "1"); s.removeItem("__dsh_probe__"); return true; }
+      catch(e){ return false; }
     }
     var localOK = false, sessionOK = false;
     try { localOK = ready(window.localStorage); } catch(e){ localOK = false; }
@@ -598,16 +649,16 @@
       set: function(k, v){
         if (localOK){
           try { window.localStorage.setItem(k, v); return true; }
-          catch(e){
-            // 配额写满等情况：降级，避免整页崩溃或丢数据
-            localOK = false;
-            this.persistent = false;
-            this.mode = sessionOK ? "session" : "memory";
-          }
+          catch(e){ localOK = false; this.persistent = false; this.mode = sessionOK ? "session" : "memory"; }
         }
         if (sessionOK){ try { window.sessionStorage.setItem(k, v); return true; } catch(e){} }
         this.memory[k] = v;
         return false;
+      },
+      remove: function(k){
+        try { if (localOK) window.localStorage.removeItem(k); } catch(e){}
+        try { if (sessionOK) window.sessionStorage.removeItem(k); } catch(e){}
+        delete this.memory[k];
       }
     };
   })();
@@ -619,13 +670,21 @@
     tab: "add",
     type: "need",
     records: [],
+    tombstones: [],   // [{id, deletedAt}]
     filter: "all",
     monthPick: "",
     lastSaved: 0
   };
-  var meta = { savedAt: 0, mode: "" };
+  var meta = { savedAt: 0 };
+  var cloud = {
+    owner: "", repo: "", path: DEFAULT_PATH, token: "",
+    auto: true, sha: "", lastSyncAt: "", remoteCount: 0, perm: "", pending: false
+  };
+  var busy = false, pushTimer = null;
 
-  // 校验并规范化单条记录；无效返回 null
+  /* ============================================================
+     数据规范化与解析
+     ============================================================ */
   function normalize(r){
     if (!r || typeof r !== "object") return null;
     if (!CATS[r.type]) return null;
@@ -633,6 +692,8 @@
     if (!isFinite(amount) || amount <= 0 || amount > 1e10) return null;
     var date = (typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) ? r.date : todayISO();
     var cat = CATS[r.type].indexOf(r.cat) > -1 ? r.cat : CATS[r.type][CATS[r.type].length - 1];
+    var ts = (typeof r.ts === "number" && r.ts > 0) ? r.ts : Date.now();
+    var ua = ms(r.updatedAt) || ts;
     return {
       id: (typeof r.id === "string" && r.id) ? r.id : uid(),
       type: r.type,
@@ -640,40 +701,132 @@
       amount: Math.round(amount * 100) / 100,
       note: typeof r.note === "string" ? r.note.slice(0, 40) : "",
       date: date,
-      ts: (typeof r.ts === "number" && r.ts > 0) ? r.ts : Date.now()
+      ts: ts,
+      updatedAt: ua
     };
   }
 
-  // 解析任意来源（主键 / 旧键 / 备份文件）的记录数组
-  function parseRecords(raw){
-    if (!raw) return null;
-    var parsed;
-    try { parsed = JSON.parse(raw); } catch(e){ return null; }
-    var arr = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.records) ? parsed.records : null);
-    if (!arr) return null;
-    var out = [], seen = {};
-    arr.forEach(function(r){
-      var n = normalize(r);
-      if (n && !seen[n.id]){ seen[n.id] = 1; out.push(n); }
-    });
-    return out;
+  function normalizeTomb(t){
+    if (!t || typeof t !== "object") return null;
+    if (typeof t.id !== "string" || !t.id) return null;
+    return { id: t.id, deletedAt: ms(t.deletedAt) || Date.now() };
   }
 
-  // 加载历史数据：主键 -> 旧版键迁移 -> 会话存储
-  function loadRecords(){
-    var raw = Store.get(KEY), from = raw ? "current" : "";
-    if (!raw){ raw = Store.get(OLD_KEY); if (raw) from = "legacy"; }
-    if (!raw) return { records: [], from: "" };
-
-    var records = parseRecords(raw);
-    if (records === null){
-      // 数据损坏：原始内容留档，避免反复崩溃，也不静默丢弃
-      Store.set(KEY + "-corrupt-" + Date.now(), String(raw).slice(0, 5000));
-      return { records: [], from: "corrupt" };
+  // 解析任意来源的账本负载；无法解析返回 null
+  function parsePayload(raw){
+    if (!raw) return null;
+    var p;
+    if (typeof raw === "string"){
+      try { p = JSON.parse(raw); } catch(e){ return null; }
+    } else {
+      p = raw;
     }
-    // 旧版本数据迁移到新键，确保下次直接命中
-    if (from === "legacy") Store.set(KEY, JSON.stringify(records));
-    return { records: records, from: from };
+    var arr = null, tombs = [];
+    if (Array.isArray(p)){ arr = p; }
+    else if (p && typeof p === "object"){
+      if (Array.isArray(p.records)) arr = p.records;
+      if (Array.isArray(p.tombstones)) tombs = p.tombstones;
+    }
+    if (!arr) return null;
+    return {
+      records: arr.map(normalize).filter(Boolean),
+      tombstones: tombs.map(normalizeTomb).filter(Boolean)
+    };
+  }
+
+  /* ============================================================
+     合并引擎：多端各自记账后合到一起，谁都不覆盖谁
+       1) 同一条记录取 updatedAt 更新的一方
+       2) 删除用墓碑表示，墓碑比记录新才算删掉
+     ============================================================ */
+  function mergePayload(a, b){
+    a = a || { records: [], tombstones: [] };
+    b = b || { records: [], tombstones: [] };
+    var map = {}, order = [];
+    function put(r){
+      var cur = map[r.id];
+      if (!cur){ map[r.id] = r; order.push(r.id); return; }
+      if ((r.updatedAt || 0) > (cur.updatedAt || 0)) map[r.id] = r;
+    }
+    (a.records || []).forEach(put);
+    (b.records || []).forEach(put);
+
+    var tmap = {};
+    (a.tombstones || []).concat(b.tombstones || []).forEach(function(t){
+      if (!tmap[t.id] || t.deletedAt > tmap[t.id].deletedAt) tmap[t.id] = { id: t.id, deletedAt: t.deletedAt };
+    });
+
+    var records = [], tombstones = [];
+    order.forEach(function(id){
+      var r = map[id];
+      var t = tmap[id];
+      if (t && t.deletedAt >= (r.updatedAt || 0)) return;  // 已被删除
+      records.push(r);
+    });
+    var alive = {};
+    records.forEach(function(r){ alive[r.id] = 1; });
+    Object.keys(tmap).forEach(function(id){
+      if (!alive[id]) tombstones.push(tmap[id]);
+    });
+    return { records: records, tombstones: tombstones };
+  }
+
+  function pruneTombstones(list){
+    var limit = Date.now() - TOMB_KEEP_DAYS * 86400000;
+    return (list || []).filter(function(t){ return t && t.deletedAt > limit; });
+  }
+
+  function samePayload(a, b){
+    try {
+      var x = JSON.stringify({
+        r: (a.records || []).slice().sort(function(p,q){ return p.id < q.id ? -1 : 1; }),
+        t: (a.tombstones || []).slice().sort(function(p,q){ return p.id < q.id ? -1 : 1; })
+      });
+      var y = JSON.stringify({
+        r: (b.records || []).slice().sort(function(p,q){ return p.id < q.id ? -1 : 1; }),
+        t: (b.tombstones || []).slice().sort(function(p,q){ return p.id < q.id ? -1 : 1; })
+      });
+      return x === y;
+    } catch(e){ return false; }
+  }
+
+  function localPayload(){
+    return { records: state.records, tombstones: state.tombstones };
+  }
+
+  function cloudPayload(){
+    return {
+      app: "收支记账本",
+      version: 3,
+      updatedAt: nowISO(),
+      device: (typeof navigator !== "undefined" && navigator.userAgent ? navigator.userAgent.slice(0, 60) : ""),
+      count: state.records.length,
+      tombstones: pruneTombstones(state.tombstones),
+      records: state.records.slice().sort(function(a,b){
+        return a.date === b.date ? a.ts - b.ts : (a.date < b.date ? -1 : 1);
+      })
+    };
+  }
+
+  /* ============================================================
+     加载 / 保存（本地）
+     ============================================================ */
+  function loadLocal(){
+    var raw = Store.get(KEY), from = raw ? "current" : "";
+    if (!raw){
+      for (var i = 0; i < LEGACY_KEYS.length; i++){
+        var r = Store.get(LEGACY_KEYS[i]);
+        if (r){ raw = r; from = "legacy"; break; }
+      }
+    }
+    if (!raw) return { payload: { records: [], tombstones: [] }, from: "" };
+    var p = parsePayload(raw);
+    if (!p){
+      Store.set(KEY + "-corrupt-" + Date.now(), String(raw).slice(0, 5000));
+      return { payload: { records: [], tombstones: [] }, from: "corrupt" };
+    }
+    if (from === "legacy") Store.set(KEY, JSON.stringify(p));
+    return { payload: p, from: from };
   }
 
   function loadMeta(){
@@ -685,45 +838,354 @@
     } catch(e){}
   }
 
-  // 保存：主键 + 元信息 + 顶栏状态 + 设置页信息
-  function save(){
-    var payload;
-    try { payload = JSON.stringify(state.records); }
-    catch(e){ payload = "[]"; }
-
+  function save(opts){
+    state.tombstones = pruneTombstones(state.tombstones);
+    var payload = JSON.stringify({ records: state.records, tombstones: state.tombstones });
     var ok = Store.set(KEY, payload);
     meta.savedAt = Date.now();
-    meta.mode = Store.mode;
-    Store.set(META_KEY, JSON.stringify({ savedAt: meta.savedAt, mode: meta.mode }));
     state.lastSaved = meta.savedAt;
-
-    renderSaveChip(true);
+    Store.set(META_KEY, JSON.stringify({ savedAt: meta.savedAt }));
     if (!ok && !Store.persistent){
-      showStoreTip("这个浏览器不允许长期保存数据（可能是无痕模式）。请用「导出备份文件」保存记录，换到普通模式后再导入。");
+      showTip("storeTip", "这个浏览器不允许长期保存数据（可能是无痕模式），请开启云同步或导出备份文件。");
     }
-    renderStorage();
+    // silent：同步过程内部的落盘，不代表"本地有新改动"，不应触发自动上传
+    if (!(opts && opts.silent)){
+      cloud.pending = true;
+      if (cloud.repo && cloud.token && cloud.auto) schedulePush();
+    }
+    renderSyncUi();
     return ok;
   }
 
-  function renderSaveChip(writing){
-    var chip = $("saveChip"), txt = $("saveChipText");
-    if (!Store.persistent){
-      chip.className = "status-chip warn";
-      txt.textContent = Store.mode === "session" ? "临时存储" : "未持久化";
-      return;
-    }
-    chip.className = "status-chip";
-    txt.textContent = writing ? "已保存" : "本地已存";
+  function showTip(id, msg, isErr){
+    var t = $(id);
+    t.textContent = (isErr ? "⚠️ " : "ℹ️ ") + msg;
+    t.className = "tip on" + (isErr ? " err" : "");
+  }
+  function hideTip(id){ $(id).className = "tip"; }
+
+  /* ============================================================
+     GitHub API 层
+     ============================================================ */
+  function b64encode(str){
+    var bytes = new TextEncoder().encode(str);
+    var bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64decode(b64){
+    var bin = atob(String(b64).replace(/\s/g, ""));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
   }
 
-  function showStoreTip(msg){
-    var t = $("storeTip");
-    t.textContent = "⚠️ " + msg;
-    t.classList.add("on");
+  // GitHub Contents API：读取文件；文件不存在返回 exists:false
+  function apiGetFile(cfg){
+    var url = API + "/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + cfg.path + "?ref=" + (cfg.branch || "main");
+    return fetch(url, {
+      headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json" },
+      cache: "no-store"
+    }).then(function(res){
+      if (res.status === 404){
+        // 文件不存在，或没有权限（GitHub 对私有仓库无权限时也返回 404）
+        return res.json().catch(function(){ return {}; }).then(function(body){
+          var msg = String(body && body.message || "");
+          if (/not found/i.test(msg)) return { exists: false, status: 404 };
+          throw new GhError(res.status, msg);
+        });
+      }
+      if (!res.ok) return res.json().catch(function(){ return {}; }).then(function(b){
+        throw new GhError(res.status, (b && b.message) || ("HTTP " + res.status));
+      });
+      return res.json().then(function(j){
+        return {
+          exists: true,
+          sha: j.sha,
+          text: b64decode(j.content || ""),
+          size: j.size || 0
+        };
+      });
+    });
+  }
+
+  // 写入文件（乐观并发：带上已知 sha，冲突会返回 409）
+  function apiPutFile(cfg, text, sha, message){
+    var body = {
+      message: message || ("更新账本 " + new Date().toLocaleString("zh-CN")),
+      content: b64encode(text)
+    };
+    if (sha) body.sha = sha;
+    var url = API + "/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + cfg.path;
+    return fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": "Bearer " + cfg.token,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(j){
+        if (res.ok && j.content) return { sha: j.content.sha };
+        throw new GhError(res.status, (j && j.message) || ("HTTP " + res.status));
+      });
+    });
+  }
+
+  function GhError(status, message){
+    this.name = "GhError";
+    this.status = status;
+    this.message = message || "请求失败";
+    this.friendly = friendlyError(status, this.message);
+  }
+  GhError.prototype = Object.create(Error.prototype);
+
+  function friendlyError(status, msg){
+    if (status === 401) return "令牌无效或已过期，请重新生成并填入";
+    if (status === 403) return "权限不足或触发限流：请确认令牌对该仓库有 Contents 读写权限（403 也可能是请求过于频繁，稍等再试）";
+    if (status === 404) return "找不到仓库或文件：请检查仓库名是否为「用户名/仓库名」，以及令牌是否授权了该仓库";
+    if (status === 409 || status === 422) return "云端文件已被其他设备修改，正在自动重试合并";
+    if (status >= 500) return "GitHub 服务暂时不可用，稍后再试";
+    return msg || ("请求失败（HTTP " + status + "）");
   }
 
   /* ============================================================
-     金额输入与新增
+     同步引擎
+     ============================================================ */
+  var SYNC_LABEL = {
+    off:"本地", idle:"已同步", pulling:"拉取中", pushing:"上传中",
+    busy:"同步中", error:"同步失败", dirty:"待上传"
+  };
+
+  function renderSyncUi(){
+    var chip = $("syncChip"), text = $("syncChipText");
+    var on = !!(cloud.repo && cloud.token);
+    $("cloudState").textContent = on ? (cloud.auto ? "已开启 · 自动" : "已开启 · 手动") : "未启用";
+    $("cloudForm").style.display = on ? "none" : "block";
+    $("cloudActions").style.display = on ? "block" : "none";
+    $("cloudStatusCard").style.display = on ? "block" : "none";
+
+    if (!on){
+      chip.className = "status-chip";
+      text.textContent = Store.persistent ? "本地" : "临时存储";
+      if (!Store.persistent){ chip.className = "status-chip warn"; }
+      $("saveHint").textContent = "数据实时保存";
+      return;
+    }
+    var st = syncStatus;
+    var cls = "sync";
+    if (st === "busy" || st === "pulling" || st === "pushing") cls = "busy";
+    else if (st === "error") cls = "warn";
+    chip.className = "status-chip " + cls;
+    var label = SYNC_LABEL[st] || "云同步";
+    if (st === "idle" && cloud.pending) label = "待上传";
+    text.textContent = label;
+    $("saveHint").textContent = "已同步到云端";
+
+    if ($("stRepo")) $("stRepo").textContent = cloud.owner + "/" + cloud.repo + " · " + cloud.path;
+    if ($("stSyncAt")) $("stSyncAt").textContent = timeAgo(cloud.lastSyncAt);
+    if ($("stRemoteCount")) $("stRemoteCount").textContent = cloud.remoteCount + " 条";
+    if ($("stPending")) $("stPending").textContent = cloud.pending ? "有（将自动上传）" : "无";
+    if ($("stPoll")) $("stPoll").textContent = (cloud.repo && cloud.token && cloud.auto)
+      ? ("每 " + Math.round(POLL_MS / 1000) + " 秒自动拉取" + (autoTimer ? "" : "（已暂停）"))
+      : "已关闭";
+    if ($("stPerm")) $("stPerm").textContent = cloud.perm || "—";
+    if ($("stSha")) $("stSha").textContent = cloud.sha ? cloud.sha.slice(0, 10) + "…" : "—";
+  }
+
+  var syncStatus = "off";
+  var syncGen = 0;          // 代次：任何一次结束都能释放锁，避免异常路径把锁卡死
+  var autoTimer = null;     // 定时轮询：页面开着也能看到别的设备的改动
+  var POLL_MS = 20000;      // 拉取间隔
+
+  function beginSync(){
+    syncGen++;
+    busy = true;
+    return syncGen;
+  }
+  function endSync(gen){
+    if (gen === syncGen) busy = false;
+  }
+
+  function setSyncStatus(s){ syncStatus = s; renderSyncUi(); }
+
+  function schedulePush(){
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function(){ push("auto"); }, 2500);
+  }
+
+  function startAutoSync(){
+    stopAutoSync();
+    if (!cloud.repo || !cloud.token || !cloud.auto) return;
+    autoTimer = setInterval(function(){
+      try { if (document.visibilityState === "hidden") return; } catch(e){}
+      if (!busy) pull(true);
+    }, POLL_MS);
+  }
+  function stopAutoSync(){
+    if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+  }
+
+  function push(reason, retry){
+    if (busy || !cloud.repo || !cloud.token) return Promise.resolve(false);
+    var gen = beginSync();
+    setSyncStatus("pushing");
+    var cfg = { owner: cloud.owner, repo: cloud.repo, path: cloud.path, token: cloud.token, branch: "main" };
+    var payload = cloudPayload();
+    var text = JSON.stringify(payload, null, 2);
+    return apiPutFile(cfg, text, cloud.sha, "更新账本（" + state.records.length + " 条记录）")
+      .then(function(r){
+        cloud.sha = r.sha;
+        cloud.pending = false;
+        cloud.lastSyncAt = nowISO();
+        cloud.remoteCount = state.records.length;
+        endSync(gen);
+        setSyncStatus("idle");
+        hideTip("syncTip");
+        return true;
+      })
+      .catch(function(err){
+        var st = err && err.status;
+        // 云端被别的设备改过：先合并云端再重试一次
+        if ((st === 409 || st === 422) && !retry){
+          endSync(gen);                       // 先释放锁，重试链路自己会重新加锁
+          return pull(true).then(function(){
+            return push(reason, true);
+          });
+        }
+        endSync(gen);
+        setSyncStatus("error");
+        showTip("syncTip", (err && (err.friendly || err.message)) || "同步失败", true);
+        return false;
+      });
+  }
+
+  // 拉取云端 -> 与本地合并 -> 需要时回传
+  function pull(quiet){
+    if (!cloud.repo || !cloud.token) return Promise.resolve(false);
+    if (busy) return Promise.resolve(false);
+    var gen = beginSync();
+    if (!quiet) setSyncStatus("pulling");
+    var beforeCount = state.records.length;
+    var cfg = { owner: cloud.owner, repo: cloud.repo, path: cloud.path, token: cloud.token, branch: "main" };
+
+    return apiGetFile(cfg).then(function(file){
+      var remote = { records: [], tombstones: [] };
+      var remoteChanged = false;
+      if (file.exists){
+        var parsed = parsePayload(file.text);
+        if (parsed) remote = parsed;
+        remoteChanged = !!cloud.sha && file.sha !== cloud.sha;   // 云端文件被别的设备改过
+        cloud.sha = file.sha;
+        cloud.remoteCount = remote.records.length;
+        cloud.remoteUpdatedAt = remote.updatedAt || "";
+      } else {
+        cloud.sha = "";
+        cloud.remoteCount = 0;
+        cloud.remoteUpdatedAt = "";
+      }
+
+      var merged = mergePayload(remote, localPayload());
+      var changed = !samePayload(merged, localPayload());
+      state.records = merged.records;
+      state.tombstones = merged.tombstones;
+      save({ silent: true });       // 合并结果落本地，不触发自动上传
+      renderAll();
+      cloud.lastSyncAt = nowISO();
+      cloud.perm = "Contents 读写可用";
+      var pulledNew = state.records.length - beforeCount;
+      // 后台轮询时发现另一台设备改了云端，给个轻提示
+      if (quiet && (remoteChanged || pulledNew !== 0)){
+        toast("已同步云端变化（当前 " + state.records.length + " 条）");
+        vibrate(10);
+      }
+
+      endSync(gen);
+      if (!file.exists && state.records.length){
+        setSyncStatus("idle");
+        return push("init");        // 云端还没有文件，把本地数据建上去
+      }
+      if (changed || cloud.pending){
+        setSyncStatus("idle");
+        return push("merge");       // 本地有云端没有的数据
+      }
+      setSyncStatus("idle");
+      hideTip("syncTip");
+      if (!quiet) toast("已是最新（本地 " + state.records.length + " 条）");
+      return true;
+    }).catch(function(err){
+      endSync(gen);
+      setSyncStatus("error");
+      showTip("syncTip", (err && (err.friendly || err.message)) || "同步失败", true);
+      return false;
+    });
+  }
+
+  function syncNow(){
+    if (!cloud.repo || !cloud.token){ toast("请先填写仓库和令牌"); switchTab("set"); return Promise.resolve(false); }
+    return pull(false);
+  }
+
+  function connectCloud(){
+    var repoRaw = $("cRepo").value.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\/+$/, "");
+    var token = $("cToken").value.trim();
+    var path = $("cPath").value.trim().replace(/^\/+/, "") || DEFAULT_PATH;
+    if (!/^[\w.\-]+\/[\w.\-]+$/.test(repoRaw)){ toast("仓库请填「用户名/仓库名」"); return; }
+    if (!token){ toast("请填写访问令牌"); return; }
+    var parts = repoRaw.split("/");
+    cloud.owner = parts[0];
+    cloud.repo = parts[1];
+    cloud.token = token;
+    cloud.path = path;
+    cloud.auto = $("cAuto") ? $("cAuto").checked : true;
+    cloud.sha = "";
+    saveCloudConfig();
+    renderSyncUi();
+    setSyncStatus("pulling");
+    pull(false).then(function(ok){
+      if (ok !== false){
+        toast("已连接：" + cloud.owner + "/" + cloud.repo);
+        startAutoSync();          // 连上后开始定时拉取，另一端改动随时可见
+      }
+    });
+  }
+
+  function disconnectCloud(){
+    if (!window.confirm("断开云同步？\n本机数据会保留，云端文件不会被删除。")) return;
+    stopAutoSync();
+    cloud.owner = ""; cloud.repo = ""; cloud.token = ""; cloud.sha = "";
+    cloud.lastSyncAt = ""; cloud.remoteCount = 0; cloud.pending = false;
+    saveCloudConfig();
+    syncStatus = "off";
+    renderSyncUi();
+    toast("已断开云同步");
+  }
+
+  function saveCloudConfig(){
+    Store.set(CLOUD_KEY, JSON.stringify({
+      owner: cloud.owner, repo: cloud.repo, path: cloud.path,
+      token: cloud.token, auto: cloud.auto, sha: cloud.sha, lastSyncAt: cloud.lastSyncAt
+    }));
+  }
+  function loadCloudConfig(){
+    var raw = Store.get(CLOUD_KEY);
+    if (!raw) return;
+    try {
+      var c = JSON.parse(raw);
+      if (!c || typeof c !== "object") return;
+      cloud.owner = c.owner || "";
+      cloud.repo = c.repo || "";
+      cloud.path = c.path || DEFAULT_PATH;
+      cloud.token = c.token || "";
+      cloud.auto = c.auto !== false;
+      cloud.sha = c.sha || "";
+      cloud.lastSyncAt = c.lastSyncAt || "";
+    } catch(e){}
+  }
+
+  /* ============================================================
+     金额、增删改
      ============================================================ */
   function readAmount(){
     var raw = $("fAmt").value.trim();
@@ -737,27 +1199,15 @@
 
   function addRecord(){
     var res = readAmount();
-    if (res.err){
-      toast(res.err);
-      try { $("fAmt").focus(); } catch(e){}
-      return false;
-    }
+    if (res.err){ toast(res.err); try { $("fAmt").focus(); } catch(e){} return false; }
     var rec = normalize({
-      id: uid(),
-      type: state.type,
-      cat: $("fCat").value,
-      amount: res.value,
-      note: $("fNote").value.trim(),
-      date: $("fDate").value || todayISO(),
-      ts: Date.now()
+      id: uid(), type: state.type, cat: $("fCat").value, amount: res.value,
+      note: $("fNote").value.trim(), date: $("fDate").value || todayISO(), ts: Date.now(), updatedAt: Date.now()
     });
     if (!rec){ toast("保存失败，请检查填写内容"); return false; }
-
     state.records.push(rec);
     save();
-
-    $("fAmt").value = "";
-    $("fNote").value = "";
+    $("fAmt").value = ""; $("fNote").value = "";
     clearQuickSelection();
     renderAll();
     vibrate(12);
@@ -768,34 +1218,68 @@
   function removeRecord(id){
     var r = state.records.filter(function(x){ return x.id === id; })[0];
     if (!r) return;
-    if (!window.confirm("删除这条记录？\n" + TYPE_NAME[r.type] + " · " + r.cat + " · " + money(r.amount) + "\n删除后无法恢复")) return;
+    if (!window.confirm("删除这条记录？\n" + TYPE_NAME[r.type] + " · " + r.cat + " · " + money(r.amount) + "\n删除后会同步到所有设备")) return;
     state.records = state.records.filter(function(x){ return x.id !== id; });
+    state.tombstones.push({ id: id, deletedAt: Date.now() });
     save();
     renderAll();
     toast("已删除");
   }
 
+  function clearAll(){
+    if (!state.records.length){ toast("当前没有记录"); return; }
+    var extra = (cloud.repo && cloud.token) ? "\n云端数据也会被同步清空。" : "";
+    if (!window.confirm("将删除全部 " + state.records.length + " 条记录，且无法恢复。" + extra + "\n建议先导出备份。确定清空？")) return;
+    var t = Date.now();
+    state.records.forEach(function(r){ state.tombstones.push({ id: r.id, deletedAt: t }); });
+    state.records = [];
+    save();
+    renderAll();
+    toast("已清空全部记录");
+  }
+
+  function importPayload(p, sourceName){
+    if (!p || !p.records.length){ toast("文件里没有可用的记录"); return; }
+    var merged = mergePayload(localPayload(), p);
+    var added = merged.records.length - state.records.length;
+    state.records = merged.records;
+    state.tombstones = merged.tombstones;
+    save();
+    renderAll();
+    toast("导入完成：新增 " + (added > 0 ? added : 0) + " 条，合计 " + state.records.length + " 条");
+  }
+
+  function importText(text){
+    var p = parsePayload(text);
+    if (!p){ toast("文件格式不正确，请选择本应用导出的 .json"); return; }
+    importPayload(p);
+  }
+
+  function importFile(file){
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024){ toast("文件过大，请检查是否选错文件"); return; }
+    if (typeof FileReader === "undefined"){ toast("当前环境不支持读取文件"); return; }
+    var reader = new FileReader();
+    reader.onload = function(){ importText(String(reader.result)); };
+    reader.onerror = function(){ toast("读取文件失败，请重试"); };
+    reader.readAsText(file, "utf-8");
+  }
+
   /* ============================================================
-     页面切换
+     页面切换与类型
      ============================================================ */
   function switchTab(tab){
     state.tab = tab;
-    ["add","list","stat","set"].forEach(function(t){
-      $("page-" + t).classList.toggle("on", t === tab);
-    });
-    Array.prototype.forEach.call($("nav").children, function(b){
-      b.classList.toggle("on", b.dataset.page === tab);
-    });
+    ["add","list","stat","set"].forEach(function(t){ $("page-" + t).classList.toggle("on", t === tab); });
+    Array.prototype.forEach.call($("nav").children, function(b){ b.classList.toggle("on", b.dataset.page === tab); });
     if (tab === "stat") renderTrend();
-    if (tab === "set") renderStorage();
+    if (tab === "set"){ renderStorage(); renderSyncUi(); }
     try { window.scrollTo(0, 0); } catch(e){}
   }
 
   function switchType(type){
     state.type = type;
-    Array.prototype.forEach.call($("seg").children, function(b){
-      b.classList.toggle("on", b.dataset.type === type);
-    });
+    Array.prototype.forEach.call($("seg").children, function(b){ b.classList.toggle("on", b.dataset.type === type); });
     $("fCat").innerHTML = CATS[type].map(function(c){
       return '<option value="' + esc(c) + '">' + ICON[c] + " " + esc(c) + "</option>";
     }).join("");
@@ -828,7 +1312,7 @@
   }
 
   /* ============================================================
-     汇总
+     汇总与列表
      ============================================================ */
   function totals(){
     var t = { income:0, need:0, expense:0, ni:0, nn:0, ne:0 };
@@ -853,16 +1337,12 @@
     $("fWant").textContent = t.ne + " 笔 · 占支出 " + (t.out ? (t.expense / t.out * 100).toFixed(0) : 0) + "%";
     $("fBal").textContent = t.bal >= 0 ? "收大于支，保持住 🎉" : "已超支，注意控制 ⚠️";
     $("sBal").style.color = t.bal >= 0 ? "var(--brand)" : "var(--need)";
-
     $("heroBal").textContent = money(t.bal);
     $("heroBal").className = "v " + (t.bal >= 0 ? "pos" : "neg");
     $("heroIn").textContent = money(t.income, true);
     $("heroOut").textContent = money(t.out, true);
   }
 
-  /* ============================================================
-     明细
-     ============================================================ */
   function filtered(){
     return state.records.filter(function(r){
       if (state.filter !== "all" && r.type !== state.filter) return false;
@@ -892,7 +1372,6 @@
     var ul = $("list");
     ul.innerHTML = "";
     var emptyEl = $("empty");
-
     if (!rows.length){
       emptyEl.style.display = "block";
       emptyEl.innerHTML = state.records.length
@@ -904,7 +1383,6 @@
 
     rows.forEach(function(r){
       var li = document.createElement("li");
-
       var ico = document.createElement("div");
       ico.className = "ico " + r.type;
       ico.textContent = ICON[r.cat] || "💰";
@@ -923,24 +1401,19 @@
       var t2 = document.createElement("div");
       t2.className = "t2";
       t2.textContent = r.date + " · " + TYPE_NAME[r.type] + (r.note ? " · " + r.note : "");
-      mid.appendChild(t1);
-      mid.appendChild(t2);
+      mid.appendChild(t1); mid.appendChild(t2);
 
       var amt = document.createElement("div");
       amt.className = "amt " + r.type;
       amt.textContent = (r.type === "income" ? "+" : "−") + money(r.amount).slice(1);
 
       var del = document.createElement("button");
-      del.className = "del";
-      del.type = "button";
+      del.className = "del"; del.type = "button";
       del.setAttribute("aria-label", "删除这条记录");
       del.textContent = "×";
       del.onclick = function(){ removeRecord(r.id); };
 
-      li.appendChild(ico);
-      li.appendChild(mid);
-      li.appendChild(amt);
-      li.appendChild(del);
+      li.appendChild(ico); li.appendChild(mid); li.appendChild(amt); li.appendChild(del);
       ul.appendChild(li);
     });
 
@@ -959,7 +1432,7 @@
   }
 
   /* ============================================================
-     统计：分类构成 + 近 6 月趋势
+     统计
      ============================================================ */
   function renderBars(elId, type, scopeEl){
     var box = $(elId);
@@ -973,8 +1446,7 @@
     }
     var map = {};
     src.forEach(function(r){ map[r.cat] = (map[r.cat] || 0) + r.amount; });
-    var arr = Object.keys(map).map(function(k){ return { name:k, v:map[k] }; })
-              .sort(function(a,b){ return b.v - a.v; });
+    var arr = Object.keys(map).map(function(k){ return { name:k, v:map[k] }; }).sort(function(a,b){ return b.v - a.v; });
     var max = arr[0].v || 1;
     var sum = arr.reduce(function(s,x){ return s + x.v; }, 0);
     box.innerHTML = arr.map(function(x){
@@ -988,21 +1460,16 @@
     }).join("");
   }
 
-  function trendMonths(){
-    var now = new Date(), out = [];
+  function renderTrend(){
+    var now = new Date(), months = [];
     for (var i = 5; i >= 0; i--){
       var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      out.push({
+      months.push({
         key: d.getFullYear() + "-" + pad(d.getMonth()+1),
         label: (d.getMonth() === 0 ? d.getFullYear() + "年" : "") + (d.getMonth()+1) + "月",
         need: 0, expense: 0, income: 0
       });
     }
-    return out;
-  }
-
-  function renderTrend(){
-    var months = trendMonths();
     var index = {};
     months.forEach(function(m, i){ index[m.key] = i; });
     state.records.forEach(function(r){
@@ -1010,7 +1477,6 @@
       if (i === undefined) return;
       months[i][r.type] += r.amount;
     });
-
     var max = 1;
     months.forEach(function(m){ max = Math.max(max, m.need + m.expense, m.income); });
 
@@ -1033,11 +1499,11 @@
   }
 
   /* ============================================================
-     存储状态面板
+     存储状态
      ============================================================ */
   function renderStorage(){
     var size = 0;
-    try { size = JSON.stringify(state.records).length + KEY.length; } catch(e){ size = 0; }
+    try { size = JSON.stringify({ records: state.records, tombstones: state.tombstones }).length + KEY.length; } catch(e){ size = 0; }
     $("stMode").textContent = Store.describe();
     $("stCount").textContent = state.records.length + " 条";
     $("stSaved").textContent = timeAgo(state.lastSaved || meta.savedAt);
@@ -1049,36 +1515,26 @@
       $("stRange").textContent = "—";
     }
     if (!Store.persistent){
-      showStoreTip("这个浏览器不允许长期保存数据（可能是无痕模式）。请用「导出备份文件」保存记录，换到普通模式再导入。");
+      showTip("storeTip", "这个浏览器不允许长期保存数据（可能是无痕模式），请开启云同步或导出备份。", true);
     }
   }
 
   /* ============================================================
-     备份：导出 / 导入 / CSV
+     导入导出
      ============================================================ */
   function download(filename, text, mime){
     var blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
   }
 
   function exportBackup(){
     if (!state.records.length){ toast("暂无数据可导出"); return; }
-    var pack = {
-      app: "收支记账本",
-      version: 2,
-      exportedAt: new Date().toISOString(),
-      count: state.records.length,
-      records: state.records.slice().sort(function(a,b){
-        return a.date === b.date ? a.ts - b.ts : (a.date < b.date ? -1 : 1);
-      })
-    };
+    var pack = cloudPayload();
+    pack.exportedAt = nowISO();
     download("收支备份_" + todayISO() + ".json", JSON.stringify(pack, null, 2), "application/json;charset=utf-8");
     toast("已导出 " + state.records.length + " 条记录");
   }
@@ -1096,49 +1552,11 @@
     toast("已导出表格");
   }
 
-  // 合并导入：按 id 去重，保留已有记录
-  function importText(text){
-    var incoming = parseRecords(text);
-    if (incoming === null){ toast("文件格式不正确，请选择本应用导出的 .json"); return; }
-    if (!incoming.length){ toast("文件里没有可用的记录"); return; }
-
-    var have = {};
-    state.records.forEach(function(r){ have[r.id] = 1; });
-    var added = 0;
-    incoming.forEach(function(r){
-      if (!have[r.id]){ state.records.push(r); have[r.id] = 1; added++; }
-    });
-    save();
-    renderAll();
-    toast("导入完成：新增 " + added + " 条，跳过重复 " + (incoming.length - added) + " 条");
-  }
-
-  function importFile(file){
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024){ toast("文件过大，请检查是否选错文件"); return; }
-    var reader = new FileReader();
-    reader.onload = function(){ importText(String(reader.result)); };
-    reader.onerror = function(){ toast("读取文件失败，请重试"); };
-    reader.readAsText(file, "utf-8");
-  }
-
-  function clearAll(){
-    if (!state.records.length){ toast("当前没有记录"); return; }
-    if (!window.confirm("将删除全部 " + state.records.length + " 条记录，且无法恢复。\n建议先「导出备份文件」。确定清空？")) return;
-    state.records = [];
-    save();
-    renderAll();
-    toast("已清空全部记录");
-  }
-
   function loadDemo(){
     var d = new Date();
     function mk(offset){
       var x = new Date(d.getFullYear(), d.getMonth() + offset, 1);
-      return {
-        key: x.getFullYear() + "-" + pad(x.getMonth()+1),
-        dim: new Date(x.getFullYear(), x.getMonth()+1, 0).getDate()
-      };
+      return { key: x.getFullYear() + "-" + pad(x.getMonth()+1), dim: new Date(x.getFullYear(), x.getMonth()+1, 0).getDate() };
     }
     var m0 = mk(0), m1 = mk(-1), m2 = mk(-2);
     var rows = [
@@ -1170,11 +1588,8 @@
       var mm = x[3];
       var day = Math.min(Number(x[4]), mm.dim);
       var rec = normalize({
-        id: uid() + i,
-        type: x[0], cat: x[1], amount: x[2],
-        date: mm.key + "-" + pad(day),
-        note: x[5],
-        ts: base + i
+        id: uid() + i, type: x[0], cat: x[1], amount: x[2],
+        date: mm.key + "-" + pad(day), note: x[5], ts: base + i, updatedAt: base + i
       });
       if (rec) state.records.push(rec);
     });
@@ -1193,7 +1608,7 @@
     renderBars("barsNeed", "need", $("scopeNeed"));
     renderBars("barsWant", "expense", $("scopeWant"));
     if (state.tab === "stat") renderTrend();
-    if (state.tab === "set") renderStorage();
+    if (state.tab === "set"){ renderStorage(); renderSyncUi(); }
   }
 
   /* ============================================================
@@ -1203,23 +1618,14 @@
     var b = e.target.closest("button");
     if (b && b.dataset.page) switchTab(b.dataset.page);
   });
-
   $("seg").addEventListener("click", function(e){
     var b = e.target.closest("button");
     if (b && b.dataset.type){ switchType(b.dataset.type); vibrate(8); }
   });
-
   $("btnAdd").addEventListener("click", function(){ addRecord(); });
-
-  $("fAmt").addEventListener("keydown", function(e){
-    if (e.key === "Enter"){ e.preventDefault(); addRecord(); }
-  });
-  $("fNote").addEventListener("keydown", function(e){
-    if (e.key === "Enter"){ e.preventDefault(); addRecord(); }
-  });
-  $("fAmt").addEventListener("input", function(){
-    if (this.value.length > 12) this.value = this.value.slice(0, 12);
-  });
+  $("fAmt").addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); addRecord(); } });
+  $("fNote").addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); addRecord(); } });
+  $("fAmt").addEventListener("input", function(){ if (this.value.length > 12) this.value = this.value.slice(0, 12); });
 
   $("fbar").addEventListener("click", function(e){
     var b = e.target.closest("button");
@@ -1228,19 +1634,13 @@
     Array.prototype.forEach.call($("fbar").children, function(x){ x.classList.toggle("on", x === b); });
     renderList();
   });
-
   $("fMonth").addEventListener("change", function(){
     state.monthPick = this.value || "";
     renderAll();
   });
-
   $("btnResetFilter").addEventListener("click", function(){
-    state.filter = "all";
-    state.monthPick = "";
-    $("fMonth").value = "";
-    Array.prototype.forEach.call($("fbar").children, function(x){
-      x.classList.toggle("on", x.dataset.filter === "all");
-    });
+    state.filter = "all"; state.monthPick = ""; $("fMonth").value = "";
+    Array.prototype.forEach.call($("fbar").children, function(x){ x.classList.toggle("on", x.dataset.filter === "all"); });
     renderAll();
     toast("已重置筛选");
   });
@@ -1249,7 +1649,6 @@
   $("btnCsv").addEventListener("click", exportCSV);
   $("btnDemo").addEventListener("click", loadDemo);
   $("btnClear").addEventListener("click", clearAll);
-
   $("btnImport").addEventListener("click", function(){ $("fileInput").click(); });
   $("fileInput").addEventListener("change", function(){
     var f = this.files && this.files[0];
@@ -1257,19 +1656,53 @@
     this.value = "";
   });
 
-  // 切后台 / 离开页面前补一次保存，避免丢数据
+  $("btnConnect").addEventListener("click", connectCloud);
+  $("btnSyncNow").addEventListener("click", function(){ syncNow(); });
+  $("btnDisconnect").addEventListener("click", disconnectCloud);
+  $("syncChip").addEventListener("click", function(){ syncNow(); });
+  $("cAuto").addEventListener("change", function(){
+    cloud.auto = this.checked;
+    saveCloudConfig();
+    renderSyncUi();
+    if (cloud.auto){
+      startAutoSync();
+      if (cloud.repo && cloud.token) pull(true);   // 立刻拉一次
+      toast("已开启自动同步");
+    } else {
+      stopAutoSync();
+      toast("已关闭自动同步");
+    }
+  });
+  $("btnFillToken").addEventListener("click", function(){
+    window.open("https://github.com/settings/personal-access-tokens/new", "_blank");
+    toast("创建时：仅选这个仓库，权限勾 Contents 读写");
+  });
+
   document.addEventListener("visibilitychange", function(){
-    if (document.visibilityState === "hidden" && state.records.length) save();
+    if (document.visibilityState === "hidden"){
+      if (state.records.length || state.tombstones.length) save({ silent: true });
+      stopAutoSync();                     // 后台不轮询，省电省流量
+      return;
+    }
+    // 回到前台：立刻合并云端，再恢复定时拉取
+    // 注意：只有用户开着自动同步时才这么做，否则会把用户关掉的开关偷偷打开
+    if (cloud.repo && cloud.token && cloud.auto){
+      startAutoSync();
+      pull(true);
+    }
+  });
+  window.addEventListener("focus", function(){
+    if (cloud.repo && cloud.token && cloud.auto && !busy) pull(true);
   });
   window.addEventListener("pagehide", function(){
-    if (state.records.length) save();
+    if (state.records.length || state.tombstones.length) save({ silent: true });
   });
-  // 同一份数据在多个标签页打开时保持同步
   window.addEventListener("storage", function(e){
     if (e.key === KEY && e.newValue){
-      var arr = parseRecords(e.newValue);
-      if (arr){
-        state.records = arr;
+      var p = parsePayload(e.newValue);
+      if (p){
+        state.records = p.records;
+        state.tombstones = p.tombstones;
         renderAll();
       }
     }
@@ -1279,9 +1712,11 @@
      启动
      ============================================================ */
   function boot(){
-    var loaded = loadRecords();
-    state.records = loaded.records;
+    var loaded = loadLocal();
+    state.records = loaded.payload.records;
+    state.tombstones = loaded.payload.tombstones;
     loadMeta();
+    loadCloudConfig();
     state.lastSaved = meta.savedAt;
 
     var d = new Date();
@@ -1291,21 +1726,29 @@
     $("fDate").value = todayISO();
     switchType("need");
     renderAll();
-    renderSaveChip(false);
-    renderStorage();
 
-    if (!Store.persistent){
-      showStoreTip("当前浏览器不允许长期保存（可能开了无痕模式）。记录只保留到本次会话结束，请用「导出备份文件」保存。");
+    if (cloud.repo && cloud.token){
+      $("cAuto").checked = cloud.auto;
+      setSyncStatus("idle");
+      renderSyncUi();
+      if (cloud.auto){
+        pull(true);
+        startAutoSync();
+      }
+    } else {
+      syncStatus = "off";
+      renderSyncUi();
     }
 
+    if (!Store.persistent){
+      showTip("storeTip", "当前浏览器不允许长期保存（可能开了无痕模式），记录只保留到本次会话结束。", true);
+    }
     if (loaded.from === "corrupt"){
       toast("本地数据已损坏，已重新开始（原始内容已留档）");
     } else if (loaded.from === "legacy"){
-      toast("已从旧版本迁移 " + loaded.records.length + " 条记录");
-    } else if (loaded.records.length){
-      toast("已加载 " + loaded.records.length + " 条历史记录");
-    } else if (Store.persistent){
-      setTimeout(function(){ toast("提示：可在「设置」载入示例数据先看效果"); }, 900);
+      toast("已从旧版本迁移 " + state.records.length + " 条记录");
+    } else if (state.records.length){
+      toast("已加载 " + state.records.length + " 条历史记录");
     }
   }
 
@@ -1315,14 +1758,23 @@
     boot();
   }
 
-  // 对外暴露内部状态，便于自动化测试与调试，不影响正常使用
+  /* ============================================================
+     调试 / 自动化测试接口
+     ============================================================ */
   var EXPOSE = {
-    state: state, Store: Store, meta: meta,
-    addRecord: addRecord, removeRecord: removeRecord,
-    switchType: switchType, switchTab: switchTab,
-    renderAll: renderAll, filtered: filtered, totals: totals,
-    normalize: normalize, parseRecords: parseRecords, loadRecords: loadRecords,
-    save: save, importText: importText, boot: boot
+    state: state, Store: Store, meta: meta, cloud: cloud,
+    addRecord: addRecord, removeRecord: removeRecord, clearAll: clearAll,
+    switchType: switchType, switchTab: switchTab, renderAll: renderAll,
+    filtered: filtered, totals: totals, save: save,
+    normalize: normalize, parsePayload: parsePayload, mergePayload: mergePayload,
+    cloudPayload: cloudPayload, localPayload: localPayload, pruneTombstones: pruneTombstones,
+    loadLocal: loadLocal, importText: importText, importPayload: importPayload,
+    connectCloud: connectCloud, disconnectCloud: disconnectCloud,
+    pull: pull, push: push, syncNow: syncNow, boot: boot,
+    startAutoSync: startAutoSync, stopAutoSync: stopAutoSync,
+    setSyncStatus: function(s){ setSyncStatus(s); }, syncLabel: SYNC_LABEL,
+    syncStatus: function(){ return syncStatus; },
+    config: { KEY: KEY, CLOUD_KEY: CLOUD_KEY, DEFAULT_PATH: DEFAULT_PATH, API: API, TOMB_KEEP_DAYS: TOMB_KEEP_DAYS, POLL_MS: POLL_MS }
   };
   window.__ledger = EXPOSE;
   try { globalThis.__ledger = EXPOSE; } catch(e){}
